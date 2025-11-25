@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'page/dang_nhap.dart';
+import 'page/man_hinh_chinh.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Smart Chef',
       theme: ThemeData(primarySwatch: Colors.green),
-      home: const LoginPage(),
+      home: const HomePage(),
     );
   }
 }
