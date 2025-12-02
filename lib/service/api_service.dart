@@ -1,0 +1,50 @@
+import 'dart:convert'; // Dùng để giải mã JSON
+import 'package:http/http.dart' as http; // Thư viện kết nối mạng
+import 'package:smartchef/config/api_config.dart'; // File chứa IP máy
+import '../models/mon_an.dart';
+
+class ApiService {
+  // Hàm lấy danh sách món ăn
+  // static: Để có thể gọi hàm này ở bất cứ đâu mà không cần khởi tạo class (new ApiService)
+  // Future: Hứa hẹn sẽ trả về dữ liệu trong tương lai (vì mạng có thể chậm)
+  static Future<List<MonAn>> fetchMonAn({String? loai}) async {
+    
+    // 1. Xác định địa chỉ (Endpoint)
+    // Nếu có truyền loại (vd: 'sang') thì gọi API lọc, nếu không thì gọi API lấy hết
+    String endpoint = loai != null ? '/api/mon-an/$loai/' : '/api/mon-an/';
+    
+    // 2. Ghép thành đường dẫn hoàn chỉnh
+    // Kết quả sẽ là: http://192.168.1.5:8000/api/mon-an/
+    final url = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+    
+    try {
+      // 3. Gửi yêu cầu GET (Giống như bấm nút Send trong Postman)
+      // await: Bảo app "Hãy đợi một chút cho server trả lời"
+      final response = await http.get(url);
+
+      // 4. Kiểm tra kết quả
+      if (response.statusCode == 200) {
+        // --- XỬ LÝ DỮ LIỆU ---
+        
+        // B1: Giải mã Bytes thành String có dấu tiếng Việt (UTF-8)
+        // Nếu dùng json.decode(response.body) ngay thì chữ 'Phở' sẽ bị lỗi font
+        String bodyUtf8 = utf8.decode(response.bodyBytes);
+        
+        // B2: Biến String JSON thành List thô (List<dynamic>)
+        List<dynamic> listJson = json.decode(bodyUtf8);
+        
+        // B3: Đưa từng cục JSON thô vào khuôn đúc (Model) để thành Object MonAn
+        List<MonAn> dsMonAn = listJson.map((json) => MonAn.fromJson(json)).toList();
+        
+        return dsMonAn;
+      } else {
+        throw Exception('Server trả về lỗi: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Bắt lỗi nếu mất mạng hoặc sai IP
+      print('Lỗi kết nối: $e');
+      // Trả về list rỗng để App không bị crash
+      return []; 
+    }
+  }
+}
