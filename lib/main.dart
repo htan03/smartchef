@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'page/dang_nhap.dart';
 import 'page/man_hinh_chinh.dart';
-import 'page/man_hinh_list_mon_an.dart';
-
 void main() {
   runApp(const MyApp());
 }

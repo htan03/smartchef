@@ -7,7 +7,7 @@ class MonAn {
   final int calo;
   final String hinhAnh;
   final String loai;
-  final List<int> dsNguyenLieu;
+  final List<String> dsNguyenLieu;
 
   MonAn({
     required this.id,
@@ -40,12 +40,11 @@ class MonAn {
       hinhAnh: json['hinhAnh'] ?? '',
       
       loai: json['loai'] ?? '',
-      
-      // Xử lý Mảng (List): Phần này hơi đặc biệt
-      // Nếu json['dsNguyenLieu'] có dữ liệu, ta ép nó thành List<int>
+    
+      // Nếu json['dsNguyenLieu'] có dữ liệu, ta ép nó thành List<String>
       // Nếu null, ta trả về một list rỗng []
-      dsNguyenLieu: json['dsNguyenLieu'] != null 
-          ? List<int>.from(json['dsNguyenLieu']) 
+      dsNguyenLieu: json['nguyen_lieu'] != null
+          ? List<String>.from(json['nguyen_lieu']) // Ép kiểu sang List String
           : [],
     );
   }

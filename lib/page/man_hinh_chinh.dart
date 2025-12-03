@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../page/man_hinh_list_mon_an.dart'; // <--- Đảm bảo import file ListMonAn của bạn vào đây
+import '../page/man_hinh_list_mon_an.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -52,9 +52,8 @@ class _HomePageState extends State<HomePage> {
             label: "Trang chủ",
           ),
           BottomNavigationBarItem(
-            // Icon này bấm vào sẽ ra ListMonAn
-            icon: Icon(Icons.menu_book_rounded), 
-            label: "Thực đơn",
+            icon: Icon(Icons.favorite_border), 
+            label: "Yêu thích",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

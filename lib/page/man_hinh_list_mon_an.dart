@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/mon_an.dart';
 import '../service/api_service.dart';
 import '../widgets/monan_card.dart';
-import '../utils/constants.dart';
+import '../page/man_hinh_chi_tiet_mon_an.dart';
+// import '../utils/constants.dart';
 
 class ListMonAn extends StatefulWidget {
   const ListMonAn({Key? key}) : super(key: key);
@@ -32,9 +33,9 @@ class _ListMonAn extends State<ListMonAn> {
       _isLoading = true;
       _hasError = false;
     });
-    
+
     _futureMonAn = ApiService.fetchMonAn();
-    
+
     _futureMonAn.then((recipes) {
       setState(() {
         _allRecipes = recipes;
@@ -61,108 +62,143 @@ class _ListMonAn extends State<ListMonAn> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Danh Sach Mon An',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
-      ),
-
-      body: Column(
-        children: [
-          // SEARCH BAR
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Tim kiem mon an...',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.primaryGreen),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                  _applyFilters();
-                },
-              ),
-            ),
-          ),
-
-          // RECIPE LIST (ListView cho 1 cột)
-          Expanded(
-            child: _isLoading
-                ? _buildLoadingState()
-                : _hasError
-                    ? _buildErrorState()
-                    : _filteredRecipes.isEmpty
-                        ? _buildEmptyState()
-                        : ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            // Padding xung quanh toàn bộ danh sách
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            itemCount: _filteredRecipes.length,
-                            itemBuilder: (context, index) {
-                              return MonAnCard(
-                                monAn: _filteredRecipes[index],
-                                onTap: () {
-                                  print('Tapped: ${_filteredRecipes[index].tenMonAn}');
-                                },
-                              );
-                            },
-                          ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.primaryGreen),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(child: Text(_errorMessage));
-  }
-
-  Widget _buildEmptyState() {
-    return Center(child: Text("Khong tim thay mon an"));
-  }
-
-  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryGreen = const Color(0xFF7CB342);
+    final bgGreen = const Color(0xFFF1F8E9);
+
+    return Scaffold(
+      backgroundColor: bgGreen,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 2. CUSTOM HEADER
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Row(
+                children: [
+                  // Nút Back được custom lại
+                  // InkWell(
+                  //   onTap: () => Navigator.pop(context),
+                  //   borderRadius: BorderRadius.circular(50),
+                  //   child: Container(
+                  //     padding: const EdgeInsets.all(10),
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.white,
+                  //       shape: BoxShape.circle,
+                  //       boxShadow: [
+                  //         BoxShadow(
+                  //           color: Colors.black.withOpacity(0.1),
+                  //           blurRadius: 5,
+                  //           offset: const Offset(0, 2),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //     child: Icon(Icons.arrow_back, color: primaryGreen),
+                  //   ),
+                  // ),
+                  const SizedBox(width: 20),
+                  const Text(
+                    "Thực đơn",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 3. SEARCH BAR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, 5))
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Tìm món ăn...",
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.search, color: primaryGreen),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                    _applyFilters();
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 4. DANH SÁCH MÓN ĂN
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(color: primaryGreen))
+                  : _hasError
+                      ? Center(child: Text(_errorMessage))
+                      : _filteredRecipes.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.restaurant,
+                                      size: 80, color: Colors.grey[300]),
+                                  const SizedBox(height: 10),
+                                  Text("Không tìm thấy món ăn nào",
+                                      style: TextStyle(
+                                          color: Colors.grey[600])),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              itemCount: _filteredRecipes.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 15),
+                                  child: MonAnCard(
+                                    monAn: _filteredRecipes[index],
+                                    onTap: () {
+                                      //Chuyyen man hinh
+                                      Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ChiTietMonAn(monAn: _filteredRecipes[index]),
+                                            ),
+                                          );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
