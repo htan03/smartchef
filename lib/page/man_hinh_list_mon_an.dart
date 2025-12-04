@@ -10,10 +10,13 @@ class ListMonAn extends StatefulWidget {
   // Biến kiểm tra xem đang ở chế độ nào
   final bool isFavoriteMode; 
 
+  final List<String>? inputIngredients;
+
   const ListMonAn({
     Key? key, 
     this.loaiMon, 
     this.title = "Thực đơn", 
+    this.inputIngredients,
     this.isFavoriteMode = false, // Mặc định là false (xem danh sách thường)
   }) : super(key: key);
 
@@ -45,9 +48,8 @@ class _ListMonAn extends State<ListMonAn> {
 
     // LOGIC GỌI API
     if (widget.isFavoriteMode) {
-      // TODO: Sau này thay bằng hàm lấy yêu thích thật
       // Tạm thời vẫn gọi hàm fetchMonAn để test giao diện
-       _futureMonAn = ApiService.fetchMonAn(); 
+      _futureMonAn = ApiService.fetchMonAn(); 
     } else {
       _futureMonAn = ApiService.fetchMonAn(loai: widget.loaiMon);
     }
