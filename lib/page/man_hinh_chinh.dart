@@ -13,12 +13,14 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   // 2. Danh sách các màn hình tương ứng
-  // Lưu ý: ListMonAn() là class bạn đã tạo ở bước trước
   final List<Widget> _screens = [
-    const HomeContent(),     // Màn hình 0: Giao diện Trang chủ (đã tách ra dưới cùng)
-    const ListMonAn(),       // Màn hình 1: Danh sách món ăn
+    const HomeContent(),    // Màn hình 0: Giao diện Trang chủ
+    const ListMonAn(        // Màn hình 1: Danh sách yêu thích (Cố định)
+      title: "Món ăn Yêu Thích",
+      isFavoriteMode: true,
+    ),    
     const Center(child: Text("Màn hình Cài đặt")), // Màn hình 2: Demo
-  ];
+  ];  
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,6 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       // 3. BODY: Thay đổi linh hoạt dựa theo _selectedIndex
-      // IndexedStack giúp giữ trạng thái của màn hình khi chuyển qua lại (không bị load lại từ đầu)
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
@@ -45,14 +46,14 @@ class _HomePageState extends State<HomePage> {
         showUnselectedLabels: false,
         backgroundColor: Colors.white,
         elevation: 10,
-        type: BottomNavigationBarType.fixed, // Giữ vị trí các nút cố định
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_rounded),
             label: "Trang chủ",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border), 
+            icon: Icon(Icons.favorite_border),
             label: "Yêu thích",
           ),
           BottomNavigationBarItem(
@@ -65,9 +66,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ---------------------------------------------------------
-// ĐÂY LÀ GIAO DIỆN TRANG CHỦ CŨ CỦA BẠN (Đã tách ra riêng)
-// ---------------------------------------------------------
+// GIAO DIỆN TRANG CHỦ (Đã thêm logic chuyển trang)
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
 
@@ -188,8 +187,7 @@ class HomeContent extends StatelessWidget {
                           const SizedBox(height: 10),
                           ElevatedButton(
                             onPressed: () {
-                              // Nếu muốn bấm nút này cũng sang trang List
-                              // thì cần dùng callback, nhưng tạm thời để trống
+                              // Logic nút gợi ý
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
@@ -212,15 +210,66 @@ class HomeContent extends StatelessWidget {
                   style:
                       TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // --- BỮA SÁNG ---
                   _buildCategoryCard(
-                      "Sáng", Icons.wb_twilight, Colors.orangeAccent),
+                    "Sáng", 
+                    Icons.wb_twilight, 
+                    Colors.orangeAccent,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ListMonAn(
+                            loaiMon: 'sang',
+                            title: "Món ăn Sáng",
+                            isFavoriteMode: false, // Xem danh sách thường
+                          ),
+                        ),
+                      );
+                    }
+                  ),
+                  
+                  // --- BỮA TRƯA ---
                   _buildCategoryCard(
-                      "Trưa", Icons.wb_sunny, Colors.redAccent),
+                    "Trưa", 
+                    Icons.wb_sunny, 
+                    Colors.redAccent,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ListMonAn(
+                            loaiMon: 'trua',
+                            title: "Món ăn Trưa",
+                            isFavoriteMode: false,
+                          ),
+                        ),
+                      );
+                    }
+                  ),
+
+                  // --- BỮA TỐI ---
                   _buildCategoryCard(
-                      "Tối", Icons.nights_stay, Colors.indigoAccent),
+                    "Tối", 
+                    Icons.nights_stay, 
+                    Colors.indigoAccent,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ListMonAn(
+                            loaiMon: 'toi',
+                            title: "Món ăn Tối",
+                            isFavoriteMode: false,
+                          ),
+                        ),
+                      );
+                    }
+                  ),
                 ],
               ),
             ],
@@ -242,27 +291,30 @@ class HomeContent extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryCard(String title, IconData icon, Color iconColor) {
-    return Container(
-      width: 100,
-      height: 110,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [
-          BoxShadow(
-              color: Colors.black12, blurRadius: 5, offset: Offset(0, 2))
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 40, color: iconColor),
-          const SizedBox(height: 10),
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.black87)),
-        ],
+  Widget _buildCategoryCard(String title, IconData icon, Color iconColor, VoidCallback onTap) {
+    return GestureDetector( // Bọc bằng GestureDetector để bắt sự kiện
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        height: 110,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black12, blurRadius: 5, offset: Offset(0, 2))
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: iconColor),
+            const SizedBox(height: 10),
+            Text(title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.black87)),
+          ],
+        ),
       ),
     );
   }

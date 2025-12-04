@@ -3,10 +3,19 @@ import '../models/mon_an.dart';
 import '../service/api_service.dart';
 import '../widgets/monan_card.dart';
 import '../page/man_hinh_chi_tiet_mon_an.dart';
-// import '../utils/constants.dart';
 
 class ListMonAn extends StatefulWidget {
-  const ListMonAn({Key? key}) : super(key: key);
+  final String? loaiMon;
+  final String title;
+  // Biến kiểm tra xem đang ở chế độ nào
+  final bool isFavoriteMode; 
+
+  const ListMonAn({
+    Key? key, 
+    this.loaiMon, 
+    this.title = "Thực đơn", 
+    this.isFavoriteMode = false, // Mặc định là false (xem danh sách thường)
+  }) : super(key: key);
 
   @override
   State<ListMonAn> createState() => _ListMonAn();
@@ -34,7 +43,14 @@ class _ListMonAn extends State<ListMonAn> {
       _hasError = false;
     });
 
-    _futureMonAn = ApiService.fetchMonAn();
+    // LOGIC GỌI API
+    if (widget.isFavoriteMode) {
+      // TODO: Sau này thay bằng hàm lấy yêu thích thật
+      // Tạm thời vẫn gọi hàm fetchMonAn để test giao diện
+       _futureMonAn = ApiService.fetchMonAn(); 
+    } else {
+      _futureMonAn = ApiService.fetchMonAn(loai: widget.loaiMon);
+    }
 
     _futureMonAn.then((recipes) {
       setState(() {
@@ -77,35 +93,40 @@ class _ListMonAn extends State<ListMonAn> {
       body: SafeArea(
         child: Column(
           children: [
-            // 2. CUSTOM HEADER
+            // 2. CUSTOM HEADER (ĐÃ SỬA LOGIC NÚT BACK)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Row(
                 children: [
-                  // Nút Back được custom lại
-                  // InkWell(
-                  //   onTap: () => Navigator.pop(context),
-                  //   borderRadius: BorderRadius.circular(50),
-                  //   child: Container(
-                  //     padding: const EdgeInsets.all(10),
-                  //     decoration: BoxDecoration(
-                  //       color: Colors.white,
-                  //       shape: BoxShape.circle,
-                  //       boxShadow: [
-                  //         BoxShadow(
-                  //           color: Colors.black.withOpacity(0.1),
-                  //           blurRadius: 5,
-                  //           offset: const Offset(0, 2),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //     child: Icon(Icons.arrow_back, color: primaryGreen),
-                  //   ),
-                  // ),
-                  const SizedBox(width: 20),
-                  const Text(
-                    "Thực đơn",
-                    style: TextStyle(
+                  // --- LOGIC HIỂN THỊ NÚT BACK ---
+                  // Nếu KHÔNG PHẢI chế độ yêu thích (!isFavoriteMode) -> Hiện nút Back
+                  if (!widget.isFavoriteMode) ...[
+                    InkWell(
+                      onTap: () => Navigator.pop(context), // Quay lại màn hình trước
+                      borderRadius: BorderRadius.circular(50),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.arrow_back, color: primaryGreen),
+                      ),
+                    ),
+                    const SizedBox(width: 20), // Khoảng cách giữa nút back và tiêu đề
+                  ],
+                  
+                  // Tiêu đề
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -115,7 +136,7 @@ class _ListMonAn extends State<ListMonAn> {
               ),
             ),
 
-            // 3. SEARCH BAR
+            // 3. SEARCH BAR (Giữ nguyên)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -151,11 +172,10 @@ class _ListMonAn extends State<ListMonAn> {
 
             const SizedBox(height: 20),
 
-            // 4. DANH SÁCH MÓN ĂN
+            // 4. DANH SÁCH MÓN ĂN (Giữ nguyên)
             Expanded(
               child: _isLoading
-                  ? Center(
-                      child: CircularProgressIndicator(color: primaryGreen))
+                  ? Center(child: CircularProgressIndicator(color: primaryGreen))
                   : _hasError
                       ? Center(child: Text(_errorMessage))
                       : _filteredRecipes.isEmpty
@@ -167,8 +187,7 @@ class _ListMonAn extends State<ListMonAn> {
                                       size: 80, color: Colors.grey[300]),
                                   const SizedBox(height: 10),
                                   Text("Không tìm thấy món ăn nào",
-                                      style: TextStyle(
-                                          color: Colors.grey[600])),
+                                      style: TextStyle(color: Colors.grey[600])),
                                 ],
                               ),
                             )
@@ -183,13 +202,13 @@ class _ListMonAn extends State<ListMonAn> {
                                   child: MonAnCard(
                                     monAn: _filteredRecipes[index],
                                     onTap: () {
-                                      //Chuyyen man hinh
                                       Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ChiTietMonAn(monAn: _filteredRecipes[index]),
-                                            ),
-                                          );
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ChiTietMonAn(
+                                              monAn: _filteredRecipes[index]),
+                                        ),
+                                      );
                                     },
                                   ),
                                 );
