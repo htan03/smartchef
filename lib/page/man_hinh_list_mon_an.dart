@@ -45,21 +45,31 @@ class _ListMonAn extends State<ListMonAn> {
       _isLoading = true;
       _hasError = false;
     });
+    
 
-    // LOGIC GỌI API
-    if (widget.isFavoriteMode) {
-      // Tạm thời vẫn gọi hàm fetchMonAn để test giao diện
-      _futureMonAn = ApiService.fetchMonAn(); 
+    // --- LOGIC CHỌN API ---
+    // Nếu có danh sách inputIngredients (tức là đi từ nút Gợi ý sang)
+    if (widget.inputIngredients != null && widget.inputIngredients!.isNotEmpty) {
+      // Gọi API Gợi ý (Backend lo việc lọc và sắp xếp)
+      _futureMonAn = ApiService.fetchGoiY(widget.inputIngredients!);
+      
     } else {
+      // Ngược lại: Gọi API lấy danh sách thường (Sáng/Trưa/Tối)
       _futureMonAn = ApiService.fetchMonAn(loai: widget.loaiMon);
     }
 
+    // --- XỬ LÝ KẾT QUẢ ---
     _futureMonAn.then((recipes) {
       setState(() {
         _allRecipes = recipes;
-        _filteredRecipes = recipes;
+        
+        _filteredRecipes = recipes; 
+        
         _isLoading = false;
-        _applyFilters();
+        
+        if (widget.inputIngredients == null || widget.inputIngredients!.isEmpty) {
+          _applyFilters(); 
+        }
       });
     }).catchError((error) {
       setState(() {

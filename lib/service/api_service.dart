@@ -47,4 +47,36 @@ class ApiService {
       return []; 
     }
   }
+  // Hàm gọi API Gợi ý từ Backend
+  static Future<List<MonAn>> fetchGoiY(List<String> ingredients) async {
+    // 1. Nối danh sách thành chuỗi: ["Trứng", "Hành"] -> "Trứng,Hành"
+    String paramValue = ingredients.join(',');
+
+    // 2. Tạo URL với tham số query
+    // Endpoint: /api/mon-an/goi-y/?nguyen_lieu=...
+    // Uri sẽ tự động mã hóa tiếng Việt (ví dụ: Trứng -> Tr%E1%BB%A9ng)
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/mon-an/goi-y/').replace(
+      queryParameters: {'nguyen_lieu': paramValue}
+    );
+
+    try {
+      print("Đang gọi API: $url"); // Log ra để debug xem đường dẫn đúng không
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        // Giải mã UTF-8 để không lỗi font tiếng Việt
+        String bodyUtf8 = utf8.decode(response.bodyBytes);
+        List<dynamic> listJson = json.decode(bodyUtf8);
+        
+        // Map sang Model MonAn
+        return listJson.map((json) => MonAn.fromJson(json)).toList();
+      } else {
+        throw Exception('Lỗi server: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi kết nối API Gợi ý: $e');
+      return []; // Trả về rỗng nếu lỗi
+    }
+  }
 }
