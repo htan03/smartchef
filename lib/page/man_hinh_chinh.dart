@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../page/man_hinh_list_mon_an.dart';
+import '../page/man_hinh_chi_tiet_mon_an.dart';
 import '../service/api_service.dart'; 
+import '../models/mon_an.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,6 +66,8 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   final TextEditingController _controller = TextEditingController();
   final List<String> _selectedIngredients = [];
+  List<MonAn> _topRecipes = [];
+  bool _isLoadingTop = true;
 
   // 1. Biến lưu tên người dùng, mặc định là "Bạn"
   String _username = "User";
@@ -73,6 +77,17 @@ class _HomeContentState extends State<HomeContent> {
     super.initState();
     // 2. Gọi API lấy tên ngay khi mở màn hình
     _loadUserProfile();
+    _loadTopRecipes();
+  }
+
+  Future<void> _loadTopRecipes() async {
+    List<MonAn> data = await ApiService.fetchTopMonAn();
+    if (mounted) {
+      setState(() {
+        _topRecipes = data;
+        _isLoadingTop = false;
+      });
+    }
   }
 
   // Hàm gọi API lấy thông tin user
@@ -298,11 +313,118 @@ class _HomeContentState extends State<HomeContent> {
                   }),
                 ],
               ),
+              const SizedBox(height: 30),
+              // MÓN ĂN NỔI BẬT
+              Row(
+                children: [
+                  const Text("Món ăn nổi bật",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                ],
+              ),
+              const SizedBox(height: 15),
+
+              // List Ngang
+              SizedBox(
+                height: 220, // Chiều cao cố định cho list ngang
+                child: _isLoadingTop
+                    ? Center(child: CircularProgressIndicator(color: primaryGreen))
+                    : _topRecipes.isEmpty
+                        ? const Center(child: Text("Chưa có dữ liệu nổi bật"))
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _topRecipes.length,
+                            itemBuilder: (context, index) {
+                              final monAn = _topRecipes[index];
+                              return GestureDetector(
+                                onTap: () {
+                                   // Chuyển sang chi tiết
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChiTietMonAn(monAn: monAn),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width: 160, // Chiều rộng mỗi thẻ
+                                  margin: const EdgeInsets.only(right: 15),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(15),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 5,
+                                          offset: Offset(0, 2))
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Ảnh
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(
+                                            top: Radius.circular(15)),
+                                        child: Image.network(
+                                          monAn.hinhAnh.isNotEmpty
+                                              ? monAn.hinhAnh
+                                              : 'https://via.placeholder.com/150',
+                                          height: 120,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (ctx, err, stack) => Container(
+                                              height: 120,
+                                              color: Colors.grey[200],
+                                              child: const Icon(Icons.image)),
+                                        ),
+                                      ),
+                                      // Tên & Info
+                                      Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              monAn.tenMonAn,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.local_fire_department,
+                                                    size: 14, color: Colors.orange),
+                                                const SizedBox(width: 4),
+                                                Text("${monAn.calo} Kcal",
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[600])),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+              ),
+              
+              // Khoảng trống dưới cùng
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
     );
+  }
   }
 
   Widget _buildCategoryCard(String title, IconData icon, Color iconColor, VoidCallback onTap) {
@@ -331,5 +453,4 @@ class _HomeContentState extends State<HomeContent> {
         ),
       ),
     );
-  }
 }

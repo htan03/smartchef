@@ -245,4 +245,31 @@ class ApiService {
       return null;
     }
   }
+
+  // Lấy món ăn yêu thích (5 món)
+  static Future<List<MonAn>> fetchTopMonAn() async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/mon-an/top-yeu-thich/');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    Map<String, String> headers = {"Content-Type": "application/json"};
+    if (token != null) {
+      headers["Authorization"] = "Bearer $token";
+    }
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        String bodyUtf8 = utf8.decode(response.bodyBytes);
+        List<dynamic> listJson = json.decode(bodyUtf8);
+        return listJson.map((json) => MonAn.fromJson(json)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Lỗi lấy top món ăn: $e');
+      return [];
+    }
+  }
 }
