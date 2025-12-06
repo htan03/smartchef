@@ -2,6 +2,8 @@ import 'dart:convert'; // Dùng để giải mã JSON
 import 'package:http/http.dart' as http; // Thư viện kết nối mạng
 import 'package:smartchef/config/api_config.dart'; // File chứa IP máy
 import '../models/mon_an.dart';
+import 'dart:io'; // Dùng để làm việc với File
+import 'package:http_parser/http_parser.dart'; // Dùng để định nghĩa kiểu file khi upload (trên điẹn thoại Android)
 
 class ApiService {
   // Hàm lấy danh sách món ăn
@@ -77,6 +79,48 @@ class ApiService {
     } catch (e) {
       print('Lỗi kết nối API Gợi ý: $e');
       return []; // Trả về rỗng nếu lỗi
+    }
+  }
+
+  // Phân tích ảnh bằng AI
+  static Future<Map<String, dynamic>> phanTichNguyenLieu(File imageFile) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/phan-tich-anh/');
+    
+    try {
+      print('Đang gửi ảnh lên server...');
+      
+      // Tạo multipart request (để gửi file)
+      var request = http.MultipartRequest('POST', url);
+
+      
+      // Thêm file ảnh vào request
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image', 
+          imageFile.path,
+          contentType: MediaType('image', 'jpeg'), // Định nghĩa kiểu file
+        )
+      );
+      
+      // Gửi request
+      var streamedResponse = await request.send();
+      
+      // Đọc response
+      var response = await http.Response.fromStream(streamedResponse);
+      
+      print('Nhận response: ${response.statusCode}');
+      
+      // Parse JSON
+      String bodyUtf8 = utf8.decode(response.bodyBytes);
+      Map<String, dynamic> result = json.decode(bodyUtf8);
+      
+      return result;
+    } catch (e) {
+      print('Lỗi phân tích ảnh: $e');
+      return {
+        'success': false,
+        'message': 'Lỗi kết nối đến server'
+      };
     }
   }
 }
