@@ -171,6 +171,47 @@ class ApiService {
     }
   }
 
+  // API đăng ký tài khoản
+  static Future<String?> register(String username, String password, String email) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/register/');
+    
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": username,
+          "password": password,
+          "email": email,
+        }),
+      );
+
+      // 201 Created = Thành công
+      if (response.statusCode == 201) {
+        return null; // Không có lỗi -> Thành công
+      } 
+      // 400 Bad Request = Lỗi nhập liệu (Trùng tên, sai email...)
+      else if (response.statusCode == 400) {
+        String bodyUtf8 = utf8.decode(response.bodyBytes);
+        Map<String, dynamic> errors = jsonDecode(bodyUtf8);
+
+        if (errors.containsKey('username')) {
+          // Lấy dòng lỗi đầu tiên trong mảng
+          return errors['username'][0]; 
+        }
+        if (errors.containsKey('email')) {
+          return errors['email'][0];
+        }
+        
+        return "Thông tin đăng ký không hợp lệ.";
+      } else {
+        return "Lỗi Server: ${response.statusCode}";
+      }
+    } catch (e) {
+      return "Lỗi kết nối mạng: $e";
+    }
+  }
+
   // Hàm lấy thông tin người dùng (Profile)
   static Future<Map<String, dynamic>?> fetchProfile() async {
     try {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../service/api_service.dart';
 import 'man_hinh_chinh.dart';
+import 'man_hinh_dang_ky.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -179,10 +180,10 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            // TODO: Điều hướng sang màn hình Đăng ký
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Chức năng đang phát triển"))
-                            );
+                            Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SignUpPage()),
+                                );
                           },
                           child: Text("Đăng ký", style: TextStyle(color: linkColor, fontWeight: FontWeight.bold)),
                         ),
