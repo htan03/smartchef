@@ -212,6 +212,44 @@ class ApiService {
     }
   }
 
+  // Hàm đổi mật khẩu
+  static Future<String?> changePassword(String oldPass, String newPass) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/change-password/');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    if (token == null) return "Chưa đăng nhập";
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "old_password": oldPass,
+          "new_password": newPass,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return null; // Thành công
+      } else {
+        String bodyUtf8 = utf8.decode(response.bodyBytes);
+        final errorData = jsonDecode(bodyUtf8);
+        
+        // Nếu lỗi do mật khẩu cũ sai
+        if (errorData['old_password'] != null) {
+          return errorData['old_password'][0];
+        }
+        return "Đổi mật khẩu thất bại.";
+      }
+    } catch (e) {
+      return "Lỗi kết nối: $e";
+    }
+  }
+
   // Hàm lấy thông tin người dùng (Profile)
   static Future<Map<String, dynamic>?> fetchProfile() async {
     try {

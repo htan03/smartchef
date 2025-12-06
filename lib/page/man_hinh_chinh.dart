@@ -3,6 +3,9 @@ import '../page/man_hinh_list_mon_an.dart';
 import '../page/man_hinh_chi_tiet_mon_an.dart';
 import '../service/api_service.dart'; 
 import '../models/mon_an.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../page/man_hinh_dang_nhap.dart';
+import '../page/man_hinh_ho_so.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -157,9 +160,54 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     ],
                   ),
-                  CircleAvatar(
-                    backgroundColor: primaryGreen,
-                    child: const Icon(Icons.person, color: Colors.white),
+                  PopupMenuButton<String>(
+                    onSelected: (value) async {
+                      if (value == 'profile') {
+                        // Chuyển sang màn hình hồ sơ
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ProfilePage()),
+                        );
+                      } else if (value == 'logout') {
+                        // Xử lý đăng xuất nhanh (nếu muốn)
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('user_token');
+                        if (mounted) {
+                           Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                            (route) => false,
+                          );
+                        }
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'profile',
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, color: Colors.grey),
+                            SizedBox(width: 10),
+                            Text('Thông tin tài khoản'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'logout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, color: Colors.red),
+                            SizedBox(width: 10),
+                            Text('Đăng xuất', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    // Phần hiển thị nút bấm chính là Avatar cũ
+                    child: CircleAvatar(
+                      backgroundColor: primaryGreen,
+                      child: const Icon(Icons.person, color: Colors.white),
+                    ),
                   )
                 ],
               ),
